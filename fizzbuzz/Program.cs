@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace fizzbuzz
 {
@@ -39,6 +43,7 @@ namespace fizzbuzz
             }
         }
 
+        //unused
         static bool promptRule(String ruleName, String ruleExplanation)
         {
             String input = "";
@@ -57,14 +62,116 @@ namespace fizzbuzz
             return false;
         }
 
-        class iterate
+        class Bonus: IEnumerable<String>
         {
+            private int max = -1;
 
+            public Bonus(int max)
+            {
+                this.max = max;
+            }
+
+            public IEnumerator<String> GetEnumerator()
+            {
+                return new BonusEnum(max);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
+        }
+
+        class BonusEnum: IEnumerator<String>
+        {
+            String[] values;
+            int position = -1;
+
+            public BonusEnum(int max)
+            {
+                values = new String[max];
+
+                for (int number = 1; number <= max; number++)
+                {
+                    String message = "";
+
+                    if (number % 3 == 0)
+                    {
+                        message = "Fizz";
+                    }
+                    if (number % 5 == 0)
+                    {
+                        message += "Buzz";
+                    }
+                    if (number % 7 == 0)
+                    {
+                        message += "Bang";
+                    }
+                    if (number % 11 == 0)
+                    {
+                        message = "Bong";
+                    }
+                    if (number % 13 == 0)
+                    {
+                        message = insertFezz(message);
+                    }
+                    if (number % 17 == 0)
+                    {
+                        message = reverseFizz(message);
+                    }
+
+                    if (message.Length > 0)
+                    {
+                        values[number-1] = message;
+                    }
+                    else
+                    {
+                        values[number - 1] = number + "";
+                    }
+                }
+            }
+
+            private String current = "";
+
+            public String Current
+            {
+                get { return this.current; }
+            }
+
+            object IEnumerator.Current
+            {
+                get { return this.Current; }
+            }
+
+            public bool MoveNext()
+            {
+                try
+                {
+                    current = values[position++];
+                    return true;
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    return false;
+                }
+            }
+
+            public void Reset()
+            {
+                position = -1;
+            }
+
+            public void Dispose()
+            {
+                
+            }
         }
 
         static void Main(string[] args)
         {
+            //part 1
             //this integer represents the number of loops our for will perform
+            
             int maxvalue = -1;
 
             do
@@ -78,49 +185,103 @@ namespace fizzbuzz
 
             Console.WriteLine("You have entered a valid number.");
 
-            bool fizzRule = promptRule("Fizz", "Fizz appears if a number is a multiple of 3");
-            bool buzzRule = promptRule("Buzz", "Buzz appears if a number is a multiple of 5");
-            bool bangRule = promptRule("Bang", "Bang appears if a number is a multiple of 7");
-            bool bongRule = promptRule("Bong", "Bong appears if a number is a multiple of 11 and erases previous rules");
-            bool fezzRule = promptRule("Fezz", "Fezz appears if a number is a multiple of 13");
-            bool reverseRule = promptRule("Reverse", "If the number is a multiple of 17 reverse the order of fizzes and buzzes");
+            //this list represents the current active rules
+            Dictionary<int, String> rules = new Dictionary<int, String>();
+
+            Console.WriteLine("Please enter the rules(separated with spaces):");
+            Console.WriteLine("Example: -3 -5 -7 will enable the Fizz, Buzz and Bang rules");
+            Console.WriteLine("If the rule is not known, ex: -40, write the rule word(4 letters, first is uppercased) immediately afterwards: -40Zoom");
+            Console.WriteLine("Note: you cannot override existing rules!(-3, -5, -7, -11, -13, -17)");
+
+            String userInputRules = Console.ReadLine();
+            String[] userSelectedRules = userInputRules.Split(" ");
+
+            foreach(String rule in userSelectedRules)
+            {
+                if(rule != "" && rule.StartsWith("-"))//if the rule follows the above example then we check
+                {
+                    switch(rule)
+                    {
+                        case "-3"://for each rule that the program knows
+                            rules.Add(3, "Fizz");
+                            break;
+                        case "-5":
+                            rules.Add(5, "Buzz");
+                            break;
+                        case "-7":
+                            rules.Add(7, "Bang");
+                            break;
+                        case "-11":
+                            rules.Add(11, "Bong");
+                            break;
+                        case "-13":
+                            rules.Add(13, "Fezz");
+                            break;
+                        case "-17":
+                            rules.Add(17, "");
+                            break;
+                        default://and for new rules
+                            Regex rg = new Regex("-[0-9]+[A-Z][a-z]{3}");
+                            if(rg.IsMatch(rule))
+                            {
+                                //the number part will represent all that is after the first character ("-") until the last 4 characters
+                                int numberPart = Int32.Parse(rule.Substring(1, rule.Length - 5));
+                                //the word part represents only the last 4 characters
+                                String wordPart = rule.Substring(rule.Length - 4);
+
+                                //check if rule exists already
+                                //if it does not, add it
+                                if(!rules.Keys.Contains(numberPart))
+                                {
+                                    rules.Add(numberPart, wordPart);
+                                }
+                            }
+                            //else ignore all the other entries
+                            break;
+                    }
+                }
+            }
+
+            List<int> keyList = new List<int>(rules.Keys);
+            Console.WriteLine("Number of rules: " + keyList.Count);
 
             //here we loop through all the numbers from 1 to maxvalue
-            for(int number = 1; number <= maxvalue; number++)
+            for (int number = 1; number <= maxvalue; number++)
             {
                 String message = "";
 
-                //if the number is a multiple of 3, our message becomes "Fizz"
-                if(number % 3 == 0 && fizzRule)
+                foreach(int key in keyList)
                 {
-                    message = "Fizz";
-                }
-                //if it's also a multiple of 5 append "Buzz"
-                if(number % 5 == 0 && buzzRule)
-                {
-                    message += "Buzz";
-                }
-                //same as above but for 7 and appends Bang
-                if(number % 7 == 0 && bangRule)
-                {
-                    message += "Bang";
-                }
-                //if its a multiple of 11 the message becomes "Bong"
-                if(number % 11 == 0 && bongRule)
-                {
-                    message = "Bong";
-                }
-                //if the number is also a multiple of 13, insert "Fezz" in front of the first thing beginning with "B"
-                if(number % 13 == 0 && fezzRule)
-                {
-                    message = insertFezz(message);
-                }
-                //if the number is a multiple of 17 we reverse the order of the fizzes/buzzes
-                //ex: if it's FizzBuzz it becomes BuzzFizz
-                //for this we call a function reverseFizz(String) defined above main
-                if(number % 17 == 0 && reverseRule)
-                {
-                    message = reverseFizz(message);
+                    switch (key)
+                    {
+                        case 11:
+                            if (number % key == 0)
+                            {
+                                message = rules[key];
+                            }
+                            break;
+                        case 13:
+                            if (number % key == 0)
+                            {
+                                message = insertFezz(message);
+                            }
+                            break;
+                        case 17:
+                            if (number % key == 0)
+                            {
+                                message = reverseFizz(message);
+                            }
+                            break;
+                        case 3:
+                        case 5:
+                        case 7:
+                        default:
+                            if (number % key == 0)
+                            {
+                                message += rules[key];
+                            }
+                            break;
+                    }
                 }
 
                 //display fizzes/buzzes/etc if any
@@ -133,6 +294,26 @@ namespace fizzbuzz
                 {
                     Console.WriteLine(number);
                 }
+            }
+
+            //part 2 continuation
+
+            //IEnumerable bonus
+            var fizzBuzzer = new Bonus(100);
+
+            foreach(var value in fizzBuzzer)
+            {
+                Console.WriteLine(value);
+            }
+
+
+            //the oneliner
+
+            var fizzBuzzer2 = Enumerable.Range(1, 100).Select(number => number % 3 == 0 ? (number % 5 == 0 ? (number % 7 == 0 ? "FizzBuzzBang" : "FizzBuzz") : (number % 7 == 0 ? "FizzBang" : "Fizz")) : (number % 5 == 0 ? (number % 7 == 0 ? "BuzzBang" : "Buzz") : (number % 7 == 0 ? "Bang" : number + "")));
+
+            foreach(var value in fizzBuzzer2)
+            {
+                Console.WriteLine(value);
             }
         }
     }
