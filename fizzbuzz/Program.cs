@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace fizzbuzz
 {
@@ -57,14 +60,131 @@ namespace fizzbuzz
             return false;
         }
 
-        class iterate
+        class Bonus: IEnumerable<String>
         {
+            private int max = -1;
 
+            public Bonus(int max)
+            {
+                this.max = max;
+            }
+
+            public IEnumerator<String> GetEnumerator()
+            {
+                return new BonusEnum(max);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
+        }
+
+        class BonusEnum: IEnumerator<String>
+        {
+            String[] values;
+            int position = -1;
+
+            public BonusEnum(int max)
+            {
+                values = new String[max];
+
+                for (int number = 1; number <= max; number++)
+                {
+                    String message = "";
+
+                    if (number % 3 == 0)
+                    {
+                        message = "Fizz";
+                    }
+                    if (number % 5 == 0)
+                    {
+                        message += "Buzz";
+                    }
+                    if (number % 7 == 0)
+                    {
+                        message += "Bang";
+                    }
+                    if (number % 11 == 0)
+                    {
+                        message = "Bong";
+                    }
+                    if (number % 13 == 0)
+                    {
+                        message = insertFezz(message);
+                    }
+                    if (number % 17 == 0)
+                    {
+                        message = reverseFizz(message);
+                    }
+
+                    if (message.Length > 0)
+                    {
+                        values[number-1] = message;
+                    }
+                    else
+                    {
+                        values[number - 1] = number + "";
+                    }
+                }
+            }
+
+            private String current = "";
+
+            public String Current
+            {
+                get { return this.current; }
+            }
+
+            object IEnumerator.Current
+            {
+                get { return this.Current; }
+            }
+
+            public bool MoveNext()
+            {
+                try
+                {
+                    current = values[position++];
+                    return true;
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    return false;
+                }
+            }
+
+            public void Reset()
+            {
+                position = -1;
+            }
+
+            public void Dispose()
+            {
+                
+            }
         }
 
         static void Main(string[] args)
         {
+            var fizzBuzzer = new Bonus(100);
+
+            Console.WriteLine(fizzBuzzer.ToList().Count);
+
+            foreach(var value in fizzBuzzer)
+            {
+                Console.WriteLine(value);
+            }
+
+            //var fizzBuzzer = from value in Enumerable.Range(1, 100) select value;//new Bonus(Enumerable.Range(1,100));
+
+            //foreach(var value in IEnumerable.Range(1,100))
+            //{
+
+            //}
+
             //this integer represents the number of loops our for will perform
+            /*
             int maxvalue = -1;
 
             do
@@ -78,6 +198,7 @@ namespace fizzbuzz
 
             Console.WriteLine("You have entered a valid number.");
 
+            //de schimbat sa fie ca parametrii in linux
             bool fizzRule = promptRule("Fizz", "Fizz appears if a number is a multiple of 3");
             bool buzzRule = promptRule("Buzz", "Buzz appears if a number is a multiple of 5");
             bool bangRule = promptRule("Bang", "Bang appears if a number is a multiple of 7");
@@ -134,6 +255,7 @@ namespace fizzbuzz
                     Console.WriteLine(number);
                 }
             }
+            */
         }
     }
 }
