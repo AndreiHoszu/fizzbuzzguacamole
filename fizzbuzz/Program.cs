@@ -230,9 +230,8 @@ namespace fizzbuzz
                                 String wordPart = rule.Substring(rule.Length - 4);
 
                                 //check if rule exists already
-                                List<int> keyListTemp = new List<int>(rules.Keys);
                                 //if it does not, add it
-                                if(!keyListTemp.Contains(numberPart))
+                                if(!rules.Keys.Contains(numberPart))
                                 {
                                     rules.Add(numberPart, wordPart);
                                 }
@@ -302,15 +301,20 @@ namespace fizzbuzz
             //IEnumerable bonus
             var fizzBuzzer = new Bonus(100);
 
-            foreach (var value in fizzBuzzer)
+            foreach(var value in fizzBuzzer)
             {
-                //Console.WriteLine(value);
+                Console.WriteLine(value);
             }
 
 
-            //not yet done - the oneliner
+            //the oneliner
 
-            var fizzBuzzer2 = from value in Enumerable.Range(1, 100) select value;
+            var fizzBuzzer2 = Enumerable.Range(1, 100).Select(number => number % 3 == 0 ? (number % 5 == 0 ? (number % 7 == 0 ? "FizzBuzzBang" : "FizzBuzz") : (number % 7 == 0 ? "FizzBang" : "Fizz")) : (number % 5 == 0 ? (number % 7 == 0 ? "BuzzBang" : "Buzz") : (number % 7 == 0 ? "Bang" : number + "")));
+
+            foreach(var value in fizzBuzzer2)
+            {
+                Console.WriteLine(value);
+            }
         }
     }
 }
